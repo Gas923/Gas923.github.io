@@ -14,25 +14,29 @@ body {
     padding: 20px;
 }
 
-/* ==================== Layout ==================== */
+/* ==================== Layout - SIDE BY SIDE ==================== */
 .layout {
     display: flex;
+    flex-direction: row;
     gap: 24px;
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
     align-items: flex-start;
+    justify-content: center;
 }
 
 .side-panel {
-    flex: 0 1 420px;
-    min-width: 0;
+    flex: 1 1 400px;
+    min-width: 350px;
+    max-width: 450px;
     position: sticky;
     top: 20px;
 }
 
 .main-panel {
-    flex: 0 1 520px;
-    min-width: 0;
+    flex: 1 1 500px;
+    min-width: 350px;
+    max-width: 550px;
 }
 
 /* ==================== Card ==================== */
@@ -401,8 +405,8 @@ footer {
     font-size: 0.8rem;
 }
 
-/* ==================== Responsive ==================== */
-@media (max-width: 900px) {
+/* ==================== Responsive - Only stack on small screens ==================== */
+@media (max-width: 800px) {
     .layout {
         flex-direction: column;
         align-items: center;
@@ -410,6 +414,7 @@ footer {
 
     .side-panel, .main-panel {
         flex: unset;
+        min-width: unset;
         max-width: 520px;
         width: 100%;
     }

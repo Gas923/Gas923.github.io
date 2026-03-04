@@ -3,8 +3,7 @@ const gameData = {
     swords: ["fist", "longsword", "claymore", "royal sword", "sandshard", "inferno sword", "icebringer sword", "dragofeng", "emberheart sword"],
     mobs: ["snail", "pig", "turtle", "caveman", "spider", "mammoth", "viperbloom", "warlock", "spartan", "reaper", "angel", "cowboy", "ghost", "totem sentinel", "mummy", "blightleap", "bonepicker", "oculon", "magmaton", "knobble", "puffcap", "winxy", "shellthorn"],
     staffs: ["winterbolt staff", "flame staff", "lightning staff", "aqua staff", "inferno staff", "nature staff", "elixir staff"],
-    multiplicatives: ["", "k", "m", "b", "t"],
-    // CORRECTED: All values as actual numbers
+    multiplicatives: ["", "k", "m", "b", "t", "qd"],
     mobHealths: [
         10, 800, 2500, 4500, 12500, 75000, 125000, 100000, 
         250000, 750000, 1500000, 15000000, 60000000, 
@@ -14,7 +13,7 @@ const gameData = {
     ],
     mobPhysicalResistances: [0, 0, 10, 0, 0, 20, 0, 0, 20, 10, 10, 10, 20, 20, 30, 10, 30, 10, 10, 10, 30, 0, 70],
     mobMagicResistances: [0, 0, 0, 0, 10, 10, 0, 20, 0, 20, 25, 0, 60, 20, 10, 30, 30, 70, 20, 25, 30, 70, 10],
-    strMultiplicatives: [1, 1000, 1000000, 1000000000, 1000000000000],
+    strMultiplicatives: [1, 1000, 1000000, 1000000000, 1000000000000, 1000000000000000],
     staffMultiplicatives: [0.15, 0.17, 0.2, 0.23, 0.3, 0.35, 2.5],
     swordMultiplicatives: [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 1.2, 0.7],
     expDrops: [10, 40, 100, 250, 400, 1000, 1750, 3250, 5500, 14000, 30000, 50000, 110000, 250000, 500000, 750000, 1500000, 3250000, 7000000, 12000000, 24000000, 50000000, 100000000]
@@ -43,7 +42,6 @@ weaponSelect.addEventListener('change', function() {
 
 // Calculate button click
 calculateBtn.addEventListener('click', function() {
-    // Get input values
     const mob = mobSelect.value;
     const strInitial = parseFloat(strengthInput.value) || 0;
     const strBonus = multiplierSelect.value;
@@ -52,20 +50,16 @@ calculateBtn.addEventListener('click', function() {
     const doubleSP = doubleSPCheckbox.checked;
     const isStaff = isStaffCheckbox.checked;
 
-    // Validate
     if (strInitial <= 0) {
         alert('Please enter your current strength/magic points!');
         return;
     }
 
-    // Calculate
     const results = calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isStaff);
 
-    // Find next mob name
     const mobIndex = gameData.mobs.indexOf(mob);
     const nextMob = mobIndex + 1 < gameData.mobs.length ? gameData.mobs[mobIndex + 1] : "the final boss";
 
-    // Display results based on whether they can one-shot current mob
     if (!results.canOneShotCurrent) {
         resultText.textContent = `You can't one-shot this mob. Try farming another one first until you have ${formatNumber(results.spNeededForCurrent)} more skill points.`;
         killCountSpan.textContent = 'N/A';
@@ -78,8 +72,6 @@ calculateBtn.addEventListener('click', function() {
     }
     
     resultsDiv.classList.remove('hidden');
-    
-    // Scroll to results
     resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 
@@ -93,7 +85,6 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
     let killCount = 0;
     let potionMinutesLeft = potions * 30;
 
-    // Find str bonus multiplier
     const multIndex = gameData.multiplicatives.indexOf(strBonus);
     if (multIndex !== -1) {
         strFinal = strInitial * gameData.strMultiplicatives[multIndex];
@@ -101,7 +92,6 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
         strFinal = strInitial;
     }
 
-    // Find weapon details
     if (isStaff) {
         KPM = 52;
         const staffIndex = gameData.staffs.indexOf(weapon);
@@ -116,23 +106,19 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
         }
     }
 
-    // Find mob details
     const mobIndex = gameData.mobs.indexOf(mob);
     if (mobIndex === -1) {
         return { canOneShotCurrent: false, spNeededForCurrent: 0 };
     }
 
-    // Get mob resistances
     const physicalResist = gameData.mobPhysicalResistances[mobIndex] / 100;
     const magicResist = gameData.mobMagicResistances[mobIndex] / 100;
     const resistance = isStaff ? magicResist : physicalResist;
 
-    // Check if player can one-shot the CURRENT mob
     const currentMobHealth = gameData.mobHealths[mobIndex];
     const currentDamage = strFinal * weaponMulti * (1 - resistance);
     
     if (currentDamage < currentMobHealth) {
-        // Cannot one-shot current mob
         const effectiveWeaponMulti = weaponMulti * (1 - resistance);
         const spNeeded = Math.ceil((currentMobHealth / effectiveWeaponMulti) - strFinal);
         return { 
@@ -141,9 +127,7 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
         };
     }
 
-    // Player can one-shot current mob, now calculate for NEXT mob
     if (mobIndex + 1 >= gameData.mobs.length) {
-        // Already at final mob
         return { 
             canOneShotCurrent: true,
             minutes: 0,
@@ -155,20 +139,16 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
     nextMobHealth = gameData.mobHealths[mobIndex + 1];
     expDrop = doubleSP ? gameData.expDrops[mobIndex] * 2 : gameData.expDrops[mobIndex];
     
-    // Get next mob resistances
     const nextPhysicalResist = gameData.mobPhysicalResistances[mobIndex + 1] / 100;
     const nextMagicResist = gameData.mobMagicResistances[mobIndex + 1] / 100;
     const nextResistance = isStaff ? nextMagicResist : nextPhysicalResist;
     
-    // Calculate SP needed for next mob
     const effectiveWeaponMultiNext = weaponMulti * (1 - nextResistance);
     const targetStr = nextMobHealth / effectiveWeaponMultiNext;
     const spNeededForNext = Math.ceil(targetStr);
 
-    // Calculate kills and time needed
     const baseExpPerMinute = expDrop * KPM;
 
-    // Safety check
     if (baseExpPerMinute <= 0 || weaponMulti <= 0) {
         return { 
             canOneShotCurrent: true,
@@ -178,11 +158,9 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
         };
     }
 
-    // Calculate using math instead of loop
     const strNeeded = targetStr - strFinal;
 
     if (strNeeded <= 0) {
-        // Already can one-shot next mob
         return { 
             canOneShotCurrent: true,
             minutes: 0, 
@@ -191,12 +169,10 @@ function calculateSP(mob, strInitial, strBonus, weapon, potions, doubleSP, isSta
         };
     }
 
-    // Calculate with potions first (2x exp)
     const potionExp = Math.min(potionMinutesLeft * baseExpPerMinute * 2, strNeeded);
     const potionMinutesUsed = Math.ceil(potionExp / (baseExpPerMinute * 2));
     const remaining = strNeeded - potionExp;
 
-    // Then normal exp
     const normalMinutes = remaining > 0 ? Math.ceil(remaining / baseExpPerMinute) : 0;
 
     minutes = potionMinutesUsed + normalMinutes;
@@ -218,12 +194,16 @@ function capitalize(str) {
 }
 
 function formatNumber(num) {
-    if (num >= 1000000000) {
-        return (num / 1000000000).toFixed(1) + 'B';
-    } else if (num >= 1000000) {
-        return (num / 1000000).toFixed(1) + 'M';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
+    if (num >= 1e15) {
+        return (num / 1e15).toFixed(2) + 'Qd';
+    } else if (num >= 1e12) {
+        return (num / 1e12).toFixed(2) + 'T';
+    } else if (num >= 1e9) {
+        return (num / 1e9).toFixed(2) + 'B';
+    } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + 'M';
+    } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(2) + 'K';
     }
     return num.toLocaleString();
 }
@@ -232,24 +212,35 @@ function formatTime(minutes) {
     if (minutes >= 1440) {
         const days = Math.floor(minutes / 1440);
         const hours = Math.floor((minutes % 1440) / 60);
-        return `${days} day${days > 1 ? 's' : ''} ${hours} hr${hours > 1 ? 's' : ''}`;
+        return `${days} day${days > 1 ? 's' : ''} ${hours} hr${hours !== 1 ? 's' : ''}`;
     } else if (minutes >= 60) {
         const hours = Math.floor(minutes / 60);
         const mins = minutes % 60;
-        return `${hours} hr${hours > 1 ? 's' : ''} ${mins} min`;
+        return `${hours} hr${hours !== 1 ? 's' : ''} ${mins} min`;
     }
     return `${minutes} minutes`;
 }
 
 // ==================== BOSS ONE-SHOT CALCULATOR ====================
 
-// --- TEMPLATE: Fill in your boss data here ---
 const bossData = [
-    // { name: "Boss Name", hp: 12345, physRes: 10, magRes: 20 },
-    { name: "Boss 1", hp: 50000, physRes: 0, magRes: 0 },
-    { name: "Boss 2", hp: 500000, physRes: 10, magRes: 20 },
-    { name: "Boss 3", hp: 5000000, physRes: 20, magRes: 10 },
-    // Add more bosses...
+    { name: "Chief", hp: 25000, physRes: 0, magRes: 0 },
+    { name: "Dino", hp: 250000, physRes: 0, magRes: 20 },
+    { name: "Arachinex", hp: 450000, physRes: 20, magRes: 20 },
+    { name: "Grimroot", hp: 950000, physRes: 20, magRes: 100 },
+    { name: "Leonidas", hp: 1250000, physRes: 25, magRes: 25 },
+    { name: "Lightning God", hp: 25000000, physRes: 30, magRes: 30 },
+    { name: "Sand Golem", hp: 2000000000, physRes: 40, magRes: 0 },
+    { name: "Hydra Worm", hp: 4000000000, physRes: 20, magRes: 90 },
+    { name: "Dragon", hp: 8000000000, physRes: 40, magRes: 40 },
+    { name: "Minotaur", hp: 30000000000, physRes: 50, magRes: 50 },
+    { name: "Nevermore", hp: 75000000000, physRes: 30, magRes: 60 },
+    { name: "Simba", hp: 750000000000, physRes: 70, magRes: 30 },
+    { name: "Anubis", hp: 1500000000000, physRes: 50, magRes: 70 },
+    { name: "Eyegor", hp: 110000000000000, physRes: 40, magRes: 60 },
+    { name: "Bloodroot Witch", hp: 4000000000000000, physRes: 30, magRes: 40 },
+    { name: "Queen of Serpents", hp: 12000000000000000, physRes: 40, magRes: 50 },
+    { name: "Ashgor", hp: 1600000000000, physRes: 50, magRes: 50 },
 ];
 
 // DOM Elements - Boss Panel
@@ -274,7 +265,6 @@ bossCalcBtn.addEventListener('click', function () {
     const weapon = bossWeaponSelect.value;
     const isStaff = bossIsStaffCheckbox.checked;
 
-    // Get weapon multiplier
     let weaponMulti = 0;
     if (isStaff) {
         const staffIndex = gameData.staffs.indexOf(weapon);
@@ -284,14 +274,11 @@ bossCalcBtn.addEventListener('click', function () {
         if (swordIndex !== -1) weaponMulti = gameData.swordMultiplicatives[swordIndex];
     }
 
-    // Get resistance
     const resistance = isStaff ? (boss.magRes / 100) : (boss.physRes / 100);
     const effectiveMulti = weaponMulti * (1 - resistance);
 
-    // SP needed = HP / effectiveMulti
     const spNeeded = effectiveMulti > 0 ? Math.ceil(boss.hp / effectiveMulti) : Infinity;
 
-    // Update UI
     bossResultsDiv.classList.remove('hidden');
 
     document.getElementById('bossDisplayName').textContent = boss.name;
@@ -305,14 +292,14 @@ bossCalcBtn.addEventListener('click', function () {
     document.getElementById('bossMagRes').textContent = boss.magRes + '%';
     document.getElementById('bossEffMulti').textContent = effectiveMulti > 0 ? effectiveMulti.toFixed(4) + 'x' : '0x';
 
-    // Tip
     const tipEl = document.getElementById('bossTip');
-    if (effectiveMulti <= 0) {
+    if (resistance >= 1) {
         tipEl.textContent = `⚠️ This boss has 100% resistance to your damage type. Try switching to a ${isStaff ? 'sword' : 'staff'}!`;
+    } else if (effectiveMulti <= 0) {
+        tipEl.textContent = `⚠️ Cannot calculate - check your weapon selection.`;
     } else {
         tipEl.textContent = `💡 You need ${formatNumber(spNeeded)} ${isStaff ? 'magic' : 'strength'} points with ${capitalize(weapon)} to one-shot ${boss.name}.`;
     }
 
     bossResultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
-
